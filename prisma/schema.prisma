@@ -13,6 +13,7 @@ generator client {
 model cuenta {
   id Int @default(autoincrement()) @id
   nombre String
+  saldo_inicial Float @default(0)
   fecha_creacion DateTime @default(now())
   estado Boolean @default(true)
 }
