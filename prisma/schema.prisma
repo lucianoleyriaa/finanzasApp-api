@@ -16,4 +16,32 @@ model cuenta {
   saldo_inicial Float @default(0)
   fecha_creacion DateTime @default(now())
   estado Boolean @default(true)
+  movimientos movimiento[]
+}
+
+model categoria {
+  id Int @default(autoincrement()) @id
+  nombre String
+  descripcion String?
+  movimientos movimiento[]
+}
+
+model tipo_movimiento {
+  id Int @default(autoincrement()) @id
+  nombre String
+  descripcion String?
+  movimientos movimiento[]
+}
+
+model movimiento {
+  id Int @default(autoincrement()) @id
+  fecha DateTime @default(now())
+  nombre String
+  id_categoria Int 
+  categoria categoria @relation(fields: [id_categoria], references: [id])
+  monto Float
+  tipo_movimiento tipo_movimiento @relation(fields: [id_tipo_mov], references: [id])
+  id_tipo_mov Int
+  cuenta cuenta @relation(fields: [id_cuenta], references: [id])
+  id_cuenta Int
 }
