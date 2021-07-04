@@ -35,7 +35,23 @@ exports.createCuenta = async (req, res) => {
    }
 };
 
-exports.updateCuenta = async (req, res) => {};
+exports.updateCuenta = async (req, res) => {
+   try {
+      const cuentaActualizada = await cuenta.update({
+         where: {
+            id: +req.params.id,
+         },
+         data: req.body,
+      });
+
+      res.status(200).json({
+         status: "OK",
+         cuentaActualizada,
+      });
+   } catch (e) {
+      console.log(e);
+   }
+};
 
 exports.deleteCuenta = async (req, res) => {
    try {

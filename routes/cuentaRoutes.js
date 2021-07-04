@@ -11,7 +11,7 @@ router
 
 router
    .route("/:id")
-   .delete(cuentasControllers.deleteCuenta)
-   .patch(cuentasControllers.updateCuenta);
+   .patch(cuentasControllers.updateCuenta)
+   .delete(cuentasControllers.deleteCuenta);
 
 module.exports = router;
