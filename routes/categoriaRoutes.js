@@ -1,7 +1,7 @@
 const Router = require("express").Router;
 const categoriaControllers = require("../controllers/categoriaControllers");
 
-const router = new Router();
+const router = Router();
 
 router
    .route("/")

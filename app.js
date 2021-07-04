@@ -1,6 +1,7 @@
 const express = require("express");
 const cuentaRoutes = require("./routes/cuentaRoutes");
 const categoriaRoutes = require("./routes/categoriaRoutes");
+const movimientoRoutes = require("./routes/movimientoRoutes");
 
 const app = express();
 
