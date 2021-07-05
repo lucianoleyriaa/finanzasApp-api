@@ -53,6 +53,37 @@ exports.createMovimiento = async (req, res) => {
    const { nombre, id_categoria, monto, id_tipo_mov } = req.body;
 
    try {
+      if (id_tipo_mov === 2) {
+         const saldoCuen = await cuenta.findUnique({
+            where: {
+               id: +id_cuenta,
+            },
+            select: {
+               saldo_inicial: true,
+               movimientos: {
+                  select: {
+                     monto: true,
+                     tipo_movimiento: {
+                        select: {
+                           nombre: true,
+                        },
+                     },
+                  },
+               },
+            },
+         });
+
+         calcularSaldo([saldoCuen]);
+
+         if (saldoCuen.saldo <= 0 || saldoCuen.saldo < monto) {
+            return res.status(400).json({
+               status: "Fail",
+               message:
+                  "El saldo de esta cuenta es inferior al gasto ingresado!",
+            });
+         }
+      }
+
       const movimientoNuevo = await movimiento.create({
          data: {
             nombre,
