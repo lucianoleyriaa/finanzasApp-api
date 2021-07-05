@@ -1,42 +1,47 @@
 const { PrismaClient } = require("@prisma/client");
 const { refactorizarMovOuput } = require("../utils/refactor");
+const { calcularSaldo } = require("../utils/calculos");
 
-const { movimiento } = new PrismaClient();
+const { movimiento, cuenta } = new PrismaClient();
 
 exports.getMovimientos = async (req, res) => {
    try {
-      const movimientos = await movimiento.findMany({
+      const movCuenta = await cuenta.findUnique({
          where: {
-            id_cuenta: +req.params.id_cuenta,
+            id: +req.params.id_cuenta,
          },
          select: {
             id: true,
-            fecha: true,
+            fecha_creacion: true,
             nombre: true,
-            cuenta: {
+            saldo_inicial: true,
+            movimientos: {
                select: {
-                  nombre: true,
-               },
-            },
-            categoria: {
-               select: {
-                  nombre: true,
-               },
-            },
-            monto: true,
-            tipo_movimiento: {
-               select: {
-                  nombre: true,
+                  id: true,
+                  fecha: true,
+                  categoria: {
+                     select: {
+                        nombre: true,
+                     },
+                  },
+                  tipo_movimiento: {
+                     select: {
+                        nombre: true,
+                     },
+                  },
+                  monto: true,
                },
             },
          },
       });
 
-      refactorizarMovOuput(movimientos);
+      movArr = [movCuenta];
+      calcularSaldo(movArr, true);
+      refactorizarMovOuput(movCuenta.movimientos);
 
       res.status(200).json({
          status: "OK",
-         movimientos,
+         movCuenta,
       });
    } catch (e) {
       console.log(e);
@@ -71,15 +76,15 @@ exports.updateMovimiento = async (req, res) => {
    try {
       const movActualizado = await movimiento.update({
          where: {
-            id: +req.params.id
+            id: +req.params.id,
          },
-         data: req.body
-      })
+         data: req.body,
+      });
 
       res.status(200).json({
-         status: 'OK',
-         movActualizado
-      })
+         status: "OK",
+         movActualizado,
+      });
    } catch (e) {
       console.log(e);
    }
@@ -88,11 +93,11 @@ exports.deleteMovimiento = async (req, res) => {
    try {
       await movimiento.delete({
          where: {
-            id: +req.params.id
-         }
-      })
+            id: +req.params.id,
+         },
+      });
 
-      res.status(204).json({})
+      res.status(204).json({});
    } catch (e) {
       console.log(e);
    }
