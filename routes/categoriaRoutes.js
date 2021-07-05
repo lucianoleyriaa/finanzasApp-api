@@ -5,7 +5,7 @@ const router = Router();
 
 router
    .route("/")
-   .get(categoriaControllers.getCategoria)
+   .get(categoriaControllers.getCategorias)
    .post(categoriaControllers.createCategoria);
 
 router

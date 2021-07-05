@@ -12,6 +12,7 @@ exports.getMovimientos = async (req, res) => {
          select: {
             id: true,
             fecha: true,
+            nombre: true,
             cuenta: {
                select: {
                   nombre: true,
@@ -68,12 +69,30 @@ exports.createMovimiento = async (req, res) => {
 
 exports.updateMovimiento = async (req, res) => {
    try {
+      const movActualizado = await movimiento.update({
+         where: {
+            id: +req.params.id
+         },
+         data: req.body
+      })
+
+      res.status(200).json({
+         status: 'OK',
+         movActualizado
+      })
    } catch (e) {
       console.log(e);
    }
 };
 exports.deleteMovimiento = async (req, res) => {
    try {
+      await movimiento.delete({
+         where: {
+            id: +req.params.id
+         }
+      })
+
+      res.status(204).json({})
    } catch (e) {
       console.log(e);
    }

@@ -8,4 +8,9 @@ router
    .get(movimientoControllers.getMovimientos)
    .post(movimientoControllers.createMovimiento);
 
+router
+   .route("/:id")
+   .patch(movimientoControllers.updateMovimiento)
+   .delete(movimientoControllers.deleteMovimiento);
+
 module.exports = router;
