@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { refactorizarMovOuput } = require("../utils/refactor");
 const { calcularSaldo } = require("../utils/calculos");
+const { filterUpdates } = require("../utils/filter");
 
 const { movimiento, cuenta } = new PrismaClient();
 
@@ -19,6 +20,7 @@ exports.getMovimientos = async (req, res) => {
                select: {
                   id: true,
                   fecha: true,
+                  nombre: true,
                   categoria: {
                      select: {
                         nombre: true,
@@ -34,6 +36,13 @@ exports.getMovimientos = async (req, res) => {
             },
          },
       });
+
+      if (!movCuenta) {
+         return res.status(400).json({
+            status: "Fail",
+            message: "La cuenta a la que intenta acceder no existe!",
+         });
+      }
 
       movArr = [movCuenta];
       calcularSaldo(movArr, true);
@@ -100,16 +109,25 @@ exports.createMovimiento = async (req, res) => {
       });
    } catch (e) {
       console.log(e);
+      if (e.meta.field_name === "id_cuenta") {
+         res.status(400).json({
+            status: "Fail",
+            message: "La cuenta no existe!",
+         });
+      }
    }
 };
 
 exports.updateMovimiento = async (req, res) => {
+   const allowedUpdates = ["nombre", "monto", "id_categoria", "id_tipo_mov"];
+   const updates = filterUpdates(req.body, allowedUpdates);
+
    try {
       const movActualizado = await movimiento.update({
          where: {
             id: +req.params.id,
          },
-         data: req.body,
+         data: updates,
       });
 
       res.status(200).json({
@@ -117,7 +135,13 @@ exports.updateMovimiento = async (req, res) => {
          movActualizado,
       });
    } catch (e) {
-      console.log(e);
+      // console.log(e);
+      if (e.code === "P2025") {
+         return res.status(400).json({
+            status: "Fail",
+            message: "El movimiento que quiere actualizar no existe!",
+         });
+      }
    }
 };
 exports.deleteMovimiento = async (req, res) => {
