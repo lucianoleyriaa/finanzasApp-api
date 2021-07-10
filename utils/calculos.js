@@ -6,9 +6,9 @@ function calcularSaldo(cuentas, detalle = false) {
       if (cuenta.saldo_inicial) ingresos.push(cuenta.saldo_inicial);
 
       cuenta.movimientos.forEach((mov) => {
-         if (mov.tipo_movimiento.nombre === "gasto") {
+         if (mov.tipo_movimiento.nombre === "Gasto") {
             gastos.push(mov.monto);
-         } else if (mov.tipo_movimiento.nombre === "ingreso") {
+         } else if (mov.tipo_movimiento.nombre === "Ingreso") {
             ingresos.push(mov.monto);
          }
       });

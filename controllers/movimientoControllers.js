@@ -44,8 +44,7 @@ exports.getMovimientos = async (req, res) => {
          });
       }
 
-      movArr = [movCuenta];
-      calcularSaldo(movArr, true);
+      calcularSaldo([movCuenta], true);
       refactorizarMovOuput(movCuenta.movimientos);
 
       res.status(200).json({
@@ -81,6 +80,14 @@ exports.createMovimiento = async (req, res) => {
                },
             },
          });
+
+         if (!saldoCuen) {
+            return res.status(400).json({
+               status: "Fail",
+               message:
+                  "La cuenta en la que desea registrar un movimiento no existe!",
+            });
+         }
 
          calcularSaldo([saldoCuen]);
 
@@ -135,7 +142,6 @@ exports.updateMovimiento = async (req, res) => {
          movActualizado,
       });
    } catch (e) {
-      // console.log(e);
       if (e.code === "P2025") {
          return res.status(400).json({
             status: "Fail",
