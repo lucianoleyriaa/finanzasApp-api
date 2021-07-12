@@ -26,6 +26,7 @@ exports.getMovimientos = async (req, res) => {
                         nombre: true,
                      },
                   },
+                  id_tipo_mov: true,
                   tipo_movimiento: {
                      select: {
                         nombre: true,
@@ -58,10 +59,11 @@ exports.getMovimientos = async (req, res) => {
 
 exports.createMovimiento = async (req, res) => {
    const { id_cuenta } = req.params;
-   const { nombre, id_categoria, monto, id_tipo_mov } = req.body;
+   const { nombre, id_categoria, monto, id_tipo_mov, id_cuenta_destino } =
+      req.body;
 
    try {
-      if (id_tipo_mov === 2) {
+      if (+id_tipo_mov === 2 || +id_tipo_mov === 3) {
          const saldoCuen = await cuenta.findUnique({
             where: {
                id: +id_cuenta,
@@ -70,7 +72,9 @@ exports.createMovimiento = async (req, res) => {
                saldo_inicial: true,
                movimientos: {
                   select: {
+                     id: true,
                      monto: true,
+                     id_tipo_mov: true,
                      tipo_movimiento: {
                         select: {
                            nombre: true,
@@ -95,9 +99,21 @@ exports.createMovimiento = async (req, res) => {
             return res.status(400).json({
                status: "Fail",
                message:
-                  "El saldo de esta cuenta es inferior al gasto ingresado!",
+                  "El saldo de esta cuenta es inferior al monto ingresado!",
             });
          }
+      }
+
+      if (+id_tipo_mov === 3) {
+         const transferencia = await movimiento.create({
+            data: {
+               nombre: "Transferencia",
+               id_categoria: 8,
+               monto,
+               id_tipo_mov: 1,
+               id_cuenta: +id_cuenta_destino,
+            },
+         });
       }
 
       const movimientoNuevo = await movimiento.create({

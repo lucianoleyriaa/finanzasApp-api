@@ -26,6 +26,7 @@ exports.getCuentas = async (req, res) => {
                         nombre: true,
                      },
                   },
+                  id_tipo_mov: true,
                   tipo_movimiento: {
                      select: {
                         nombre: true,
