@@ -10,6 +10,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model usuario {
+   id Int @default(autoincrement()) @id
+   nombre String
+   apellido String
+   usuario String @unique
+   password String
+   fecha_creacion DateTime @default(now())
+   fecha_modificacion DateTime @updatedAt
+}
+
 model cuenta {
   id Int @default(autoincrement()) @id
   nombre String
