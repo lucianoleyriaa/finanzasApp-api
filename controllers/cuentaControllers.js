@@ -8,6 +8,7 @@ exports.getCuentas = async (req, res) => {
       const cuentas = await cuenta.findMany({
          where: {
             estado: true,
+            id_usuario: req.user.id,
          },
          select: {
             id: true,
@@ -50,6 +51,7 @@ exports.getCuentas = async (req, res) => {
 
 exports.createCuenta = async (req, res) => {
    const data = req.body;
+   data.id_usuario = req.user.id;
    try {
       const nuevaCuenta = await cuenta.create({
          data,
@@ -66,16 +68,24 @@ exports.createCuenta = async (req, res) => {
 
 exports.updateCuenta = async (req, res) => {
    try {
-      const cuentaActualizada = await cuenta.update({
+      const cuentaActualizada = await cuenta.updateMany({
          where: {
             id: +req.params.id,
+            id_usuario: req.user.id,
          },
          data: req.body,
       });
 
+      if (cuentaActualizada.count === 0) {
+         return res.status(400).json({
+            status: "Fail",
+            message: "La cuenta que intenta actualizar no existe!",
+         });
+      }
+
       res.status(200).json({
          status: "OK",
-         cuentaActualizada,
+         message: "La cuenta se actualizo correctamente!",
       });
    } catch (e) {
       console.log(e);
@@ -84,14 +94,22 @@ exports.updateCuenta = async (req, res) => {
 
 exports.deleteCuenta = async (req, res) => {
    try {
-      await cuenta.update({
+      const deleteAccount = await cuenta.updateMany({
          where: {
             id: +req.params.id,
+            id_usuario: req.user.id,
          },
          data: {
             estado: false,
          },
       });
+
+      if (deleteAccount.count === 0) {
+         return res.status(400).json({
+            status: "Fail",
+            message: "La cuenta que intenta eliminar no existe!",
+         });
+      }
 
       res.status(204).json({});
    } catch (e) {

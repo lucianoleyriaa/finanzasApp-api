@@ -23,7 +23,7 @@ exports.login = async (req, res) => {
       });
 
       if (!user) {
-         return res.status(400).json({
+         return res.status(401).json({
             status: "Fail",
             message: "El usuario o la contraseña son incorrectos!",
          });
@@ -32,7 +32,7 @@ exports.login = async (req, res) => {
       const checkPass = await bcrypt.compare(password, user.password);
 
       if (!checkPass) {
-         return res.status(400).json({
+         return res.status(401).json({
             status: "Fail",
             message: "El usuario o la contraseña son incorrectos!2",
          });
