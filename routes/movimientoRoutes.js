@@ -1,16 +1,18 @@
 const Router = require("express").Router;
+
 const movimientoControllers = require("../controllers/movimientoControllers");
+const authControllers = require("../controllers/authControllers");
 
 const router = Router({ mergeParams: true });
 
 router
    .route("/")
-   .get(movimientoControllers.getMovimientos)
-   .post(movimientoControllers.createMovimiento);
+   .get(authControllers.protect, movimientoControllers.getMovimientos)
+   .post(authControllers.protect, movimientoControllers.createMovimiento);
 
 router
    .route("/:id")
-   .patch(movimientoControllers.updateMovimiento)
-   .delete(movimientoControllers.deleteMovimiento);
+   .patch(authControllers.protect, movimientoControllers.updateMovimiento)
+   .delete(authControllers.protect, movimientoControllers.deleteMovimiento);
 
 module.exports = router;

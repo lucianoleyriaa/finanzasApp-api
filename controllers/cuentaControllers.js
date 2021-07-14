@@ -4,7 +4,6 @@ const { calcularSaldo } = require("../utils/calculos");
 const { cuenta } = new PrismaClient();
 
 exports.getCuentas = async (req, res) => {
-   console.log(req.user);
    try {
       const cuentas = await cuenta.findMany({
          where: {

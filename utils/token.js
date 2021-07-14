@@ -6,7 +6,21 @@ const createToken = async (id) => {
 };
 
 const decodeToken = async (token) => {
-   return JWT.verify(token, process.env.JWT_SECRET_KEY);
+   let result;
+   result = JWT.verify(
+      token,
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1h" },
+      (err, decode) => {
+         if (err) {
+            return { error: true, message: err.message };
+         }
+
+         return decode;
+      }
+   );
+
+   return result;
 };
 
 module.exports = { createToken, decodeToken };

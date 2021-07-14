@@ -79,10 +79,28 @@ exports.signup = async (req, res) => {
 };
 
 exports.protect = async (req, res, next) => {
+   if (
+      !req.headers.authorization ||
+      !req.headers.authorization.startsWith("Bearer ")
+   ) {
+      return res.status(404).json({
+         status: "Fail",
+         message: "Debes iniciar sesion para poder acceder a esta ruta!",
+      });
+   }
+
    const token = req.headers.authorization.split(" ")[1];
 
    try {
       const decodedToken = await decodeToken(token);
+
+      if (decodedToken.error && decodedToken.error === true) {
+         return res.status(404).json({
+            status: "Fail",
+            message:
+               "No tiene autorizacion para acceder a esta ruta. Por favor inicia sesion!",
+         });
+      }
 
       const user = await usuario.findUnique({
          where: {

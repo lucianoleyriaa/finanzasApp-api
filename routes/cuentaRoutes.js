@@ -11,11 +11,11 @@ router.use("/:id_cuenta/movimientos", movimientoRoutes);
 router
    .route("/")
    .get(authControllers.protect, cuentasControllers.getCuentas)
-   .post(cuentasControllers.createCuenta);
+   .post(authControllers.protect, cuentasControllers.createCuenta);
 
 router
    .route("/:id")
-   .patch(cuentasControllers.updateCuenta)
-   .delete(cuentasControllers.deleteCuenta);
+   .patch(authControllers.protect, cuentasControllers.updateCuenta)
+   .delete(authControllers.protect, cuentasControllers.deleteCuenta);
 
 module.exports = router;
