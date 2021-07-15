@@ -52,7 +52,23 @@ exports.getCuentas = async (req, res) => {
 exports.createCuenta = async (req, res) => {
    const data = req.body;
    data.id_usuario = req.user.id;
+
    try {
+      const countExist = await cuenta.count({
+         where: {
+            nombre: data.nombre,
+            id_usuario: req.user.id,
+         },
+      });
+
+      if (countExist > 0) {
+         return res.status(404).json({
+            status: "Fail",
+            message:
+               "No se pudo crear la cuenta debido a que ya existe una con ese nombre!",
+         });
+      }
+
       const nuevaCuenta = await cuenta.create({
          data,
       });
