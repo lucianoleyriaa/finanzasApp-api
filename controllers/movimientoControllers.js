@@ -2,14 +2,16 @@ const { PrismaClient } = require("@prisma/client");
 const { refactorizarMovOuput } = require("../utils/refactor");
 const { calcularSaldo } = require("../utils/calculos");
 const { filterUpdates } = require("../utils/filter");
+const { checkAccountBeforeTransfer } = require("../utils/utilidades");
 
 const { movimiento, cuenta } = new PrismaClient();
 
 exports.getMovimientos = async (req, res) => {
    try {
-      const movCuenta = await cuenta.findUnique({
+      const movCuenta = await cuenta.findMany({
          where: {
             id: +req.params.id_cuenta,
+            id_usuario: req.user.id,
          },
          select: {
             id: true,
@@ -38,15 +40,15 @@ exports.getMovimientos = async (req, res) => {
          },
       });
 
-      if (!movCuenta) {
+      if (movCuenta.length === 0) {
          return res.status(400).json({
             status: "Fail",
             message: "La cuenta a la que intenta acceder no existe!",
          });
       }
 
-      calcularSaldo([movCuenta], true);
-      refactorizarMovOuput(movCuenta.movimientos);
+      calcularSaldo(movCuenta, true);
+      refactorizarMovOuput(movCuenta);
 
       res.status(200).json({
          status: "OK",
@@ -64,9 +66,10 @@ exports.createMovimiento = async (req, res) => {
 
    try {
       if (+id_tipo_mov === 2 || +id_tipo_mov === 3) {
-         const saldoCuen = await cuenta.findUnique({
+         const saldoCuen = await cuenta.findMany({
             where: {
                id: +id_cuenta,
+               id_usuario: req.user.id,
             },
             select: {
                saldo_inicial: true,
@@ -85,7 +88,7 @@ exports.createMovimiento = async (req, res) => {
             },
          });
 
-         if (!saldoCuen) {
+         if (saldoCuen.length === 0) {
             return res.status(400).json({
                status: "Fail",
                message:
@@ -93,9 +96,9 @@ exports.createMovimiento = async (req, res) => {
             });
          }
 
-         calcularSaldo([saldoCuen]);
+         calcularSaldo(saldoCuen);
 
-         if (saldoCuen.saldo <= 0 || saldoCuen.saldo < monto) {
+         if (saldoCuen[0].saldo <= 0 || saldoCuen[0].saldo < monto) {
             return res.status(400).json({
                status: "Fail",
                message:
@@ -105,7 +108,21 @@ exports.createMovimiento = async (req, res) => {
       }
 
       if (+id_tipo_mov === 3) {
-         const transferencia = await movimiento.create({
+         const existsAccount = await checkAccountBeforeTransfer(
+            cuenta,
+            req.user.id,
+            id_cuenta_destino
+         );
+
+         if (!existsAccount) {
+            return res.status(404).json({
+               status: "Fail",
+               message:
+                  "La cuenta a la que se le quiere realizar la transferencia no existe!",
+            });
+         }
+
+         await movimiento.create({
             data: {
                nombre: "Transferencia",
                id_categoria: 8,
@@ -146,12 +163,30 @@ exports.updateMovimiento = async (req, res) => {
    const updates = filterUpdates(req.body, allowedUpdates);
 
    try {
-      const movActualizado = await movimiento.update({
+      const cuentas = await cuenta.findMany({
+         where: { id_usuario: req.user.id },
+         select: { id: true },
+      });
+
+      const idUserAccounts = cuentas.map((el) => el.id);
+
+      const movActualizado = await movimiento.updateMany({
          where: {
             id: +req.params.id,
+            id_cuenta: {
+               in: idUserAccounts,
+            },
          },
          data: updates,
       });
+
+      if (movActualizado.count === 0) {
+         return res.status(404).json({
+            status: "Fail",
+            message:
+               "El movimiento o la cuenta que quiere actualizar no existe!",
+         });
+      }
 
       res.status(200).json({
          status: "OK",
@@ -166,6 +201,7 @@ exports.updateMovimiento = async (req, res) => {
       }
    }
 };
+
 exports.deleteMovimiento = async (req, res) => {
    try {
       await movimiento.delete({
