@@ -4,7 +4,7 @@ const { calcularSaldo } = require("../utils/calculos");
 const { filterUpdates } = require("../utils/filter");
 const { checkAccountBeforeTransfer } = require("../utils/utilidades");
 
-const { movimiento, cuenta } = new PrismaClient();
+const { movimiento, cuenta, tipo_movimiento } = new PrismaClient();
 
 exports.getMovimientos = async (req, res) => {
    try {
@@ -36,6 +36,9 @@ exports.getMovimientos = async (req, res) => {
                   },
                   monto: true,
                },
+               orderBy: {
+                  fecha: "desc",
+               },
             },
          },
       });
@@ -61,8 +64,7 @@ exports.getMovimientos = async (req, res) => {
 
 exports.createMovimiento = async (req, res) => {
    const { id_cuenta } = req.params;
-   const { nombre, id_categoria, monto, id_tipo_mov, id_cuenta_destino } =
-      req.body;
+   const { nombre, id_categoria, monto, id_tipo_mov, id_cuenta_destino, fecha, } = req.body;
 
    try {
       if (+id_tipo_mov === 2 || +id_tipo_mov === 3) {
@@ -83,6 +85,7 @@ exports.createMovimiento = async (req, res) => {
                            nombre: true,
                         },
                      },
+                     fecha: true,
                   },
                },
             },
@@ -125,10 +128,11 @@ exports.createMovimiento = async (req, res) => {
          await movimiento.create({
             data: {
                nombre: "Transferencia",
-               id_categoria: 8,
+               id_categoria: 10,
                monto,
                id_tipo_mov: 1,
                id_cuenta: +id_cuenta_destino,
+               fecha,
             },
          });
       }
@@ -136,10 +140,28 @@ exports.createMovimiento = async (req, res) => {
       const movimientoNuevo = await movimiento.create({
          data: {
             nombre,
-            id_categoria,
+            id_categoria: +id_categoria ? +id_categoria : 10,
             monto,
             id_tipo_mov,
             id_cuenta: +id_cuenta,
+            fecha,
+         },
+         select: {
+            nombre: true,
+            categoria: {
+               select: {
+                  nombre: true,
+               },
+            },
+            monto: true,
+            tipo_movimiento: {
+               select: {
+                  nombre: true,
+               },
+            },
+            id_tipo_mov: true,
+            id_cuenta: true,
+            fecha: true,
          },
       });
 
@@ -215,3 +237,16 @@ exports.deleteMovimiento = async (req, res) => {
       console.log(e);
    }
 };
+
+exports.getMovementType = async (req, res) => {
+   try {
+      const movementTypes = await tipo_movimiento.findMany();
+
+      res.status(200).json({
+         status: "OK",
+         movementTypes
+      });
+   } catch (e) {
+      console.log(e);
+   }
+}

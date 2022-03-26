@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { calcularSaldo } = require("../utils/calculos");
 
-const { cuenta } = new PrismaClient();
+const { cuenta, movimiento } = new PrismaClient();
 
 exports.getCuentas = async (req, res) => {
    try {
@@ -56,7 +56,7 @@ exports.createCuenta = async (req, res) => {
    try {
       const countExist = await cuenta.count({
          where: {
-            nombre: data.nombre,
+            nombre: data.name,
             id_usuario: req.user.id,
          },
       });
@@ -70,12 +70,42 @@ exports.createCuenta = async (req, res) => {
       }
 
       const nuevaCuenta = await cuenta.create({
-         data,
+         data: {
+            nombre: data.name,
+            saldo_inicial: data.amount,
+            usuario: {
+               connect: {
+                  id: data.id_usuario
+               }
+            }
+         }
       });
+
+      await movimiento.create({
+         data: {
+            id_cuenta: nuevaCuenta.id,
+            nombre: "Saldo inicial",
+            monto: data.amount,
+            id_tipo_mov: 1,
+            fecha: (new Date(Date.now())).toLocaleDateString(),
+            id_categoria: 1
+         }
+      })
+
+      nuevaCuenta.saldo = nuevaCuenta.saldo_inicial;
+
+      const newAccount = {
+         estado: nuevaCuenta.estado,
+         fecha_creacion: nuevaCuenta.fecha_creacion,
+         id: nuevaCuenta.id,
+         nombre: nuevaCuenta.nombre,
+         saldo: nuevaCuenta.saldo,
+         saldo_inicial: nuevaCuenta.saldo_inicial
+      }
 
       res.status(201).json({
          status: "OK",
-         nuevaCuenta,
+         newAccount,
       });
    } catch (e) {
       console.log(e);

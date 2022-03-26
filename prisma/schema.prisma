@@ -37,6 +37,8 @@ model categoria {
   nombre String
   descripcion String?
   movimientos movimiento[]
+  id_tipo_mov Int
+  tipo_movimiento tipo_movimiento @relation(fields:[id_tipo_mov], references: [id])
 }
 
 model tipo_movimiento {
@@ -44,13 +46,14 @@ model tipo_movimiento {
   nombre String
   descripcion String?
   movimientos movimiento[]
+  categorias categoria[]
 }
 
 model movimiento {
   id Int @default(autoincrement()) @id
-  fecha DateTime @default(now())
+  fecha String
   nombre String
-  id_categoria Int 
+  id_categoria Int
   categoria categoria @relation(fields: [id_categoria], references: [id])
   monto Float
   tipo_movimiento tipo_movimiento @relation(fields: [id_tipo_mov], references: [id])

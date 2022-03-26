@@ -3,7 +3,7 @@ function calcularSaldo(cuentas, detalle = false) {
       let ingresos = [0];
       let gastos = [0];
 
-      if (cuenta.saldo_inicial) ingresos.push(cuenta.saldo_inicial);
+      // if (cuenta.saldo_inicial) ingresos.push(cuenta.saldo_inicial);
 
       if (cuenta.movimientos.length != 0) {
          cuenta.movimientos.forEach((mov) => {
