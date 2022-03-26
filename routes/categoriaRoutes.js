@@ -6,13 +6,18 @@ const authControllers = require("../controllers/authControllers");
 const router = Router();
 
 router
-   .route("/")
-   .get(authControllers.protect, categoriaControllers.getCategorias)
-   .post(authControllers.protect, categoriaControllers.createCategoria);
+   .route("/:id")
+   .get(authControllers.protect, categoriaControllers.getCategories)
 
 router
-   .route("/:id")
-   .patch(authControllers.protect, categoriaControllers.updateCategoria)
-   .delete(authControllers.protect, categoriaControllers.deleteCategoria);
+   .route('/')
+   .get(authControllers.protect, categoriaControllers.getCategories)
+   .post(authControllers.protect, categoriaControllers.createCategoria);
+
+
+// router
+// .route("actualizar/:id")
+// .patch(authControllers.protect, categoriaControllers.updateCategoria)
+// .delete(authControllers.protect, categoriaControllers.deleteCategoria);
 
 module.exports = router;
