@@ -2,16 +2,71 @@ const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
 const { createToken, verifyToken, decodeToken } = require("../utils/token");
 const { decode } = require("jsonwebtoken");
+const { calcularSaldo } = require("../utils/calculos");
 
-const { usuario } = new PrismaClient();
+const { usuario, cuenta } = new PrismaClient();
+
+exports.me = async (req, res) => {
+   const user = req.user;
+   try {
+      const userAccounts = await cuenta.findMany({
+         where: {
+            estado: true,
+            id_usuario: user.id
+         },
+         select: {
+            id: true,
+            nombre: true,
+            estado: true,
+            fecha_creacion: true,
+            saldo_inicial: true,
+            movimientos: {
+               select: {
+                  id: true,
+                  fecha: true,
+                  nombre: true,
+                  monto: true,
+                  categoria: {
+                     select: {
+                        nombre: true,
+                     },
+                  },
+                  id_tipo_mov: true,
+                  tipo_movimiento: {
+                     select: {
+                        nombre: true,
+                     },
+                  },
+               },
+            }
+         }
+      });
+
+      calcularSaldo(userAccounts);
+      user.userAccounts = userAccounts;
+
+      delete user.password;
+      delete user.usuario;
+      delete user.fecha_modificacion;
+
+      const result = { user }
+
+      res.status(200).json({
+         status: 'OK',
+         result,
+      });
+   } catch (e) {
+
+   }
+}
 
 exports.login = async (req, res) => {
-   const { nombreUsuario, password } = req.body;
+   const { username, password } = req.body;
 
    try {
       const user = await usuario.findUnique({
          where: {
-            usuario: nombreUsuario,
+            usuario: username,
          },
          select: {
             id: true,
@@ -83,7 +138,7 @@ exports.protect = async (req, res, next) => {
       !req.headers.authorization ||
       !req.headers.authorization.startsWith("Bearer ")
    ) {
-      return res.status(404).json({
+      return res.status(401).json({
          status: "Fail",
          message: "Debes iniciar sesion para poder acceder a esta ruta!",
       });
@@ -95,7 +150,7 @@ exports.protect = async (req, res, next) => {
       const decodedToken = await decodeToken(token);
 
       if (decodedToken.error && decodedToken.error === true) {
-         return res.status(404).json({
+         return res.status(401).json({
             status: "Fail",
             message:
                "No tiene autorizacion para acceder a esta ruta. Por favor inicia sesion!",
