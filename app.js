@@ -18,6 +18,9 @@ app.use("/finanzas/api/cuentas", cuentaRoutes);
 app.use("/finanzas/api/categorias", categoriaRoutes);
 app.use('/finanzas/api/movementTypes', getMovementType);
 
+// Refactorization
+app.use("/finanzas/api/v2/accounts", cuentaRoutes)
+
 app.listen(3000, () => {
-   console.log("Servidor corriendo en puerto 3000!");
+    console.log("Servidor corriendo en puerto 3000!");
 });
